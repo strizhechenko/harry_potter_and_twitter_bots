@@ -6,17 +6,7 @@ from mgrep import process_line
 
 __author__ = "@strizhechenko"
 
-READER = Twibot(username=environ.get('reader_name'))
 TEMPLATE = unicode(environ.get('template', u''), 'utf-8')
-
-
-def get_tweets():
-    return get_maximum_tweets(READER.api.home_timeline)
-
-
-def print_tweets(tweets):
-    for tweet in tweets:
-        print tweet.encode('utf-8')
 
 
 def read_tweets(filename):
@@ -24,10 +14,11 @@ def read_tweets(filename):
         return (unicode(tweet, 'utf-8') for tweet in f.readlines())
 
 
-def do_tweets():
+def main():
     # in case of using on non-twitter source of words:
     # tweets = read_tweets('file-with-words-path')
-    tweets = get_tweets()
+    reader = Twibot(username=environ.get('reader_name'))
+    tweets = get_maximum_tweets(reader.api.home_timeline)
     for tweet in tweets:
         result = process_line(tweet)
         if result:
@@ -35,4 +26,4 @@ def do_tweets():
 
 
 if __name__ == '__main__':
-    do_tweets()
+    main()
