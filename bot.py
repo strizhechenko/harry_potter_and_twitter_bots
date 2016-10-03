@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import sys
 from os import environ
 from twitterbot_utils import Twibot, get_maximum_tweets
 from mgrep import process_line
@@ -26,14 +25,13 @@ def read_tweets(filename):
 
 
 def do_tweets():
-    """ периодические генерация и постинг твитов """
     # in case of using on non-twitter source of words:
     # tweets = read_tweets('file-with-words-path')
     tweets = get_tweets()
     for tweet in tweets:
         result = process_line(tweet)
         if result:
-            print u"Гарри Поттер и {0}".format(result).encode('utf-8')
+            print TEMPLATE.format(result).encode('utf-8')
 
 
 if __name__ == '__main__':
