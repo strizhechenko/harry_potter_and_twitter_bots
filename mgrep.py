@@ -8,7 +8,7 @@ morpher = MorphAnalyzer()
 def choose_suitable_form(parsed, grammem):
     for word in parsed:
         if grammem in word.tag and u'nomn' in word.tag:
-            return word.word
+            return word.word.capitalize()
 
 
 def validate(words):
@@ -29,7 +29,6 @@ def process_line(line):
                 return u" ".join(result)
         except:
             pass
-
 
 if __name__ == '__main__':
     process_line(unicode(" ".join(sys.argv[1:]), 'utf-8'))
