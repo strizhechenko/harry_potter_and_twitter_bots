@@ -2,30 +2,57 @@
 
 # coding: utf-8
 
-from os import environ
+# pylint: disable=C0111,C0103
+
+from os import getenv
 from twitterbot_utils import Twibot, get_maximum_tweets
 from mgrep import process_line
 
 __author__ = "@strizhechenko"
 
-TEMPLATE = unicode(environ.get('template', u''), 'utf-8')
+TEMPLATE = unicode(getenv('template', u''), 'utf-8')
 
 
-def read_tweets(filename):
-    with open(filename) as f:
-        return (unicode(tweet, 'utf-8') for tweet in f.readlines())
+class Tweets(object):
 
+    def __init__(self, source='net', filename='tweets.txt', net_count=100):
+        self.reader = None
+        self.tweets = []
+        self.filename = filename
 
-def main():
-    # in case of using on non-twitter source of words:
-    # tweets = read_tweets('file-with-words-path')
-    reader = Twibot(username=environ.get('reader_name'))
-    tweets = get_maximum_tweets(reader.api.home_timeline)
-    for tweet in tweets:
-        result = process_line(tweet)
-        if result:
-            print TEMPLATE.format(result).encode('utf-8')
+        if source == 'local':
+            self.read()
+            return
+
+        if source == 'net':
+            self.reader = Twibot(username=getenv('reader_name'))
+            if net_count >= 200:
+                self.net_max()
+            else:
+                self.net(net_count)
+
+    def write(self):
+        tweets = [t.text.encode('utf-8') for t in self.tweets]
+        with open(self.filename, 'w') as f:
+            tweets.append('')
+            f.write("\n".join(tweets))
+
+    def read(self):
+        with open(self.filename) as f:
+            self.tweets = (unicode(tweet, 'utf-8') for tweet in f.readlines())
+
+    def net(self, count):
+        self.tweets = [t.text for t in self.reader.api.home_timeline(count=count)]
+
+    def net_max(self):
+        self.tweets = get_maximum_tweets(self.reader.api.home_timeline, logging=True)
+
+    def process(self):
+        for tweet in self.tweets:
+            result = process_line(tweet)
+            if result:
+                print TEMPLATE.format(result).encode('utf-8')
 
 
 if __name__ == '__main__':
-    main()
+    Tweets('net', net_count=1000).process()
