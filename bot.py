@@ -6,6 +6,7 @@
 
 from os import getenv
 from twitterbot_utils import Twibot, get_maximum_tweets
+from dictator import Dictator
 from mgrep import process_line
 
 __author__ = "@strizhechenko"
@@ -15,13 +16,17 @@ TEMPLATE = unicode(getenv('template', u''), 'utf-8')
 
 class Tweets(object):
 
-    def __init__(self, source='net', filename='tweets.txt', net_count=100):
+    def __init__(self, source='net', filename='tweets.txt', net_count=100, redis_db=1):
         self.reader = None
         self.tweets = []
         self.filename = filename
 
         if source == 'local':
             self.read()
+            return
+
+        if source == 'redis':
+            self.redis = dictator(redis_db)
             return
 
         if source == 'net':

@@ -6,9 +6,12 @@ from pymorphy2 import MorphAnalyzer
 morpher = MorphAnalyzer()
 
 
-BLACKLIST_WORDS = [u'какой', u'такой', u'этот', u'тот',
-                   u'каждый', u'такие', u'это', u'эта',
-                   u'их', u'все', u'то', u'те', u'эти']
+BLACKLIST_WORDS = [u'какой', u'какая', u'какое', u'какие',
+                   u'такой', u'такая', u'такое', u'такие',
+		   u'каждый', u'каждая', u'каждые', u'каждое',
+                   u'этот', u'эта', u'это',u'эти',
+                   u'тот', u'та', u'то', u'те',
+		   u'их']
 BLACKLIST_COMBOS = [
     [u'доброе', u'утро']
 ]
