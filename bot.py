@@ -13,7 +13,8 @@ class HarryPotter(Writer):
         Writer.__init__(self, username, host)
 
     def run(self):
-        self.connection['__last_tweet_id__'] = 1
+        self.connection['__last_tweet_id__'] = self.connection.get('__last_tweet_id__', '1')
+        print self.connection['__last_tweet_id__'], len(text_input)
         text_input = dict(self.unprocessed_lines())
         for key in sorted(text_input, key=int):
             result = process_line(unicode(text_input[str(key)], 'utf-8'))
@@ -25,6 +26,7 @@ class HarryPotter(Writer):
                 tweet_rc = self.twibot.api.update_status(tweet)
                 # pylint: disable=E1101
                 self.connection[result] = tweet_rc.id
+                self.connection['__last_tweet_id__'] = key
                 print 'ok', key, tweet
                 break
             except TweepError:
