@@ -19,9 +19,8 @@ class HarryPotter(Writer):
             result = process_line(unicode(text_input[str(key)], 'utf-8'))
             if not result or self.connection.get(result):
                 continue
-            tweet = unicode(self.template, 'utf-8').format(result).encode('utf-8')
             try:
-                self.tweet(key, tweet, result)
+                self.tweet(key, result)
                 break
             except TweepError:
                 self.connection['__last_tweet_id__'] = key
