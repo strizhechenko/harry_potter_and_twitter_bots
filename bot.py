@@ -3,7 +3,7 @@
 """ 'Harry Potter and Shit' bot """
 from os import getenv
 from twitterbot_farm import Writer
-from mgrep import process_line
+from mgrep import process_tweet
 from tweepy.error import TweepError
 
 
@@ -16,7 +16,7 @@ class HarryPotter(Writer):
         self.connection['__last_tweet_id__'] = self.connection.get('__last_tweet_id__', '1')
         text_input = dict(self.unprocessed_lines())
         for key in sorted(text_input, key=int):
-            result = process_line(unicode(text_input[str(key)], 'utf-8'))
+            result = process_tweet(unicode(text_input[str(key)], 'utf-8'))
             if not result or self.connection.get(result):
                 continue
             try:

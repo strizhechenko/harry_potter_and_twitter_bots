@@ -5,7 +5,6 @@ from pymorphy2 import MorphAnalyzer
 
 morpher = MorphAnalyzer()
 
-
 BLACKLIST_WORDS = [u'какой', u'какая', u'какое', u'какие',
                    u'такой', u'такая', u'такое', u'такие',
                    u'каждый', u'каждая', u'каждые', u'каждое',
@@ -25,36 +24,35 @@ def choose_suitable_form(parsed, grammem):
     for word in parsed:
         if grammem in word.tag and u'nomn' in word.tag:
             return word.word.capitalize()
+    assert False, "No suitable form"
 
 
 def is_blacklisted(words):
     return words in BLACKLIST_COMBOS or any(word in BLACKLIST_WORDS for word in words)
 
 
-def validate(words):
-    if not all(match(u'^[а-я]+$', word, flags=UNICODE) for word in words):
-        return
-    if is_blacklisted(words):
-        return
-    if not all(len(word) > 1 for word in words):
-        return
+def choose_suitable_forms(words):
+    assert all(match(u'^[а-я]+$', word, flags=UNICODE) for word in words), "Words aren't russian"
+    assert not is_blacklisted(words), "Words are blacklisted"
+    assert all(len(word) > 1 for word in words), "Words are too short"
     parsed = (
         choose_suitable_form(morpher.parse(words[0]), u'ADJF'),
         choose_suitable_form(morpher.parse(words[1]), u'NOUN'),
     )
-    return all(parsed) and parsed
+    return parsed
 
 
-def process_line(line):
+def process_tweet(line):
     words = line.lower().split()
     combos = [words[i:i + 2] for i in range(len(words) - 1)]
-    for i in combos:
+    for combo in combos:
         try:
-            result = validate(i)
-            if result:
-                return u" ".join(result)
-        except:
+            return u" ".join(choose_suitable_forms(combo))
+        except AssertionError:
             pass
+        except BaseException as err:
+            print(err)
+
 
 if __name__ == '__main__':
-    process_line(unicode(" ".join(sys.argv[1:]), 'utf-8'))
+    process_tweet(unicode(" ".join(sys.argv[1:]), 'utf-8'))
