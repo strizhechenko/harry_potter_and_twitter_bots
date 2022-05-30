@@ -13,5 +13,7 @@ class TestMgrep(TestCase):
     def test_it(self):
         self._check_it("своих старых", [])
         self._check_it("просто набор", [])
+        self._check_it("гадкий я", [])
         self._check_it("по крайней мере", ["Крайняя Мера"])
+        self._check_it("достаточно длинная строка для проверки итерации", ["Длинная Строка"])
         self._check_it("неправильные схемы", ["Неправильные Схемы"])
