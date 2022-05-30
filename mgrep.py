@@ -12,14 +12,14 @@ IGNORE_WORDS = {
 IGNORE_PHRASES = [['доброе', 'утро']]
 
 
-def morph(parsed: list, grammems: set, form: str) -> str or None:
+def morph(parsed: list, grammems: set, forms: set) -> str or None:
     for word in parsed:
-        if form in word.tag and word.score > 0.1:
+        if any(form in word.tag for form in forms) and word.score > 0.1:
             for lexeme in word.lexeme:
                 if lexeme.normal_form in IGNORE_WORDS:
                     return
                 if 'Name' not in lexeme.tag:
-                    if all(grammem in lexeme.tag for grammem in grammems | {form}):
+                    if all(grammem in lexeme.tag for grammem in grammems | forms):
                         return lexeme.word.capitalize()
 
 
@@ -30,15 +30,31 @@ def add_common_tag(words: list, category: tuple, tags: set) -> bool or None:
             return True
 
 
+def detect_adjf_tags(adjf):
+    """ Причастие (PRTF) должно сохранять свой изначальный залог (Adjx), иначе морфер может сильно исказить смысл """
+    adjf_tags = {'ADJF'}
+    if 'PRTF' in adjf[0].tag:
+        adjf_tags = {'PRTF'}
+        if 'Adjx' in adjf[0].tag:
+            adjf_tags.add('Adjx')
+    return adjf_tags
+
+
 def morphs(words: tuple) -> tuple:
     parsed = list(map(morpher.parse, words))
-    grammems = {'nomn'}  # стараемся привести всё к именительному падежу
+    common_tags = {'nomn'}  # стараемся привести всё к именительному падежу
     # Обеспечиваем согласованность по числу, множественное в приоритете
-    if not add_common_tag(parsed, ('plur', 'sing'), grammems):
+    if not add_common_tag(parsed, ('plur', 'sing'), common_tags):
         return None, None  # нужно для работы all(result := )
-    if 'sing' in grammems:  # И, в случае единственного числа, по полу
-        add_common_tag(parsed, ('masc', 'femn', 'neut'), grammems)
-    return morph(parsed[0], grammems, 'ADJF'), morph(parsed[1], grammems, 'NOUN')
+    if 'sing' in common_tags:  # И, в случае единственного числа, по полу
+        add_common_tag(parsed, ('masc', 'femn', 'neut'), common_tags)
+    logging.debug("common_tags %s", common_tags)
+    adjf, nomn = parsed
+    adjf_tags = detect_adjf_tags(adjf)
+    adjf = morph(adjf, common_tags, adjf_tags)
+    if not adjf:  # ради того чтобы морфер не потел с существительным, если уже ясно что ничего не вышло
+        return None, None
+    return adjf, morph(parsed[1], common_tags, {'NOUN'})
 
 
 def pick_combos(line: str):

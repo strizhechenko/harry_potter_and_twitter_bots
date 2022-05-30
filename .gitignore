@@ -1,4 +1,5 @@
 *.pyc
+*.sqlite
 env
 venv
 env.sh
