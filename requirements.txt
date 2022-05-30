@@ -1,2 +1,3 @@
 pymorphy2
+html2text
 mastodon.py
