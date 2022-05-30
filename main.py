@@ -13,7 +13,7 @@ from harry_potter_and_twitter_bots.mgrep import pick_combos
 
 h = html2text.HTML2Text()
 h.ignore_links = h.ignore_images = True
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 
 def parse_args():
@@ -29,12 +29,13 @@ def parse_args():
 
 
 def toots2toots(cur):
-    for _id, content in cur.execute("SELECT id, content FROM toot WHERE processed = 0").fetchall():
+    for _id, content in cur.execute("SELECT id, content FROM toot WHERE processed = 0 ORDER BY id DESC").fetchall():
         for combo in pick_combos(content):
-            print(f"Гарри Поттер и {combo}")
             count = cur.execute(f"SELECT count(1) FROM phrase WHERE phrase='{combo}'").fetchone()[0]
             if count == 0:
-                cur.execute(f"INSERT INTO phrase (phrase) VALUES ('{combo}')")
+                # toot_id нужен для отладки, чтобы понимать откуда фраза взялась
+                cur.execute(f"INSERT INTO phrase (toot_id, phrase) VALUES ({_id}, '{combo}')")
+                print(f"Гарри Поттер и {combo}")
         cur.execute(f"UPDATE toot SET processed = 1 where id = {_id}")
 
 
@@ -46,6 +47,8 @@ def update_toots(url, cur, html):
     logging.debug("Fetched %d items", len(data))
     for toot in data:
         content = html.handle(toot.get('content')).replace("'", "").strip()
+        if not content:
+            continue
         count = cur.execute(f"SELECT count(1) FROM toot WHERE id={toot.get('id')}").fetchone()[0]
         if count == 0:
             sql = f"INSERT INTO toot (id, content) VALUES ({toot.get('id')}, '{content}')"
