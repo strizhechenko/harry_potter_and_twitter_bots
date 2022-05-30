@@ -1,6 +1,6 @@
 # coding: utf-8
 import logging
-from re import match
+import re
 
 from pymorphy2 import MorphAnalyzer
 
@@ -12,7 +12,7 @@ IGNORE_WORDS = {
 IGNORE_PHRASES = [['доброе', 'утро']]
 
 
-def morph(parsed, grammems, form):
+def morph(parsed: list, grammems: set, form: str) -> str or None:
     for word in parsed:
         if form in word.tag and word.score > 0.1:
             for lexeme in word.lexeme:
@@ -23,14 +23,14 @@ def morph(parsed, grammems, form):
                         return lexeme.word.capitalize()
 
 
-def add_common_tag(words, category, tags):
+def add_common_tag(words: list, category: tuple, tags: set) -> bool or None:
     for tag in category:
         if all(any(tag in w.tag for w in word) for word in words):
             tags.add(tag)
             return True
 
 
-def morphs(words) -> tuple:
+def morphs(words: tuple) -> tuple:
     parsed = list(map(morpher.parse, words))
     grammems = {'nomn'}  # стараемся привести всё к именительному падежу
     # Обеспечиваем согласованность по числу, множественное в приоритете
@@ -41,11 +41,11 @@ def morphs(words) -> tuple:
     return morph(parsed[0], grammems, 'ADJF'), morph(parsed[1], grammems, 'NOUN')
 
 
-def pick_combos(line):
+def pick_combos(line: str):
     words = line.lower().split()
     for n, word in enumerate(words[1:], 1):
         combo = (words[n - 1], word)
-        if all(match('^[а-я]{2,}$', word) for word in combo) and combo not in IGNORE_PHRASES:
+        if all(re.match('^[а-я]{2,}$', word) for word in combo) and combo not in IGNORE_PHRASES:
             if all(result := morphs(combo)):
                 yield " ".join(result)
 
