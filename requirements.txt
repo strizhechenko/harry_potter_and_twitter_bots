@@ -1,3 +1,2 @@
-twitterbot-utils>=0.1.4
 pymorphy2
-APScheduler
+mastodon.py
